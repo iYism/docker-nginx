@@ -34,14 +34,14 @@ Built on **Rocky Linux 9**, this repository provides a custom Docker image for F
 
 Build the Docker image locally:
 ```sh
-docker build -t freenginx:latest .
+docker build -t nginx:latest .
 ```
 
 ### Run the Container
 
 You can run the FreeNGINX container using the following command:
 ```sh
-docker run -d -p 80:80 -p 443:443 --name freenginx freenginx:latest
+docker run -d -p 80:80 -p 443:443 --name nginx nginx:latest
 ```
 
 This will start FreeNGINX with the default configuration.
@@ -56,8 +56,8 @@ docker run -d \
   -p 80:80/tcp \
   -p 443:443/tcp \
   -p 443:443/udp \
-  --name freenginx \
-  freenginx:latest
+  --name nginx \
+  nginx:latest
 ```
 
 You can also include custom Lua scripts, or other configuration options as needed.

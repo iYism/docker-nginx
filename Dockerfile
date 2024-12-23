@@ -1,4 +1,4 @@
-# Dockerfile - FreeNginx
+# Dockerfile - Nginx
 
 ARG USER=nginx
 ARG CONF_DIR=/etc/nginx
@@ -244,7 +244,7 @@ RUN set -x \
     && getent group $USER >/dev/null || groupadd -r $USER -g 101 \
     && getent passwd $USER >/dev/null || useradd -r -u 101 -g $USER -s /sbin/nologin \
         -d ${DATA_DIR} -m -c "$USER user" $USER \
-# Create the directories required for FreeNGINX dependencies
+# Create the directories required for NGINX dependencies
     && mkdir -p ${DATA_DIR} ${LOGS_DIR} \
 # Install required packages
     && microdnf install -y gd brotli libxslt libxml2 libmaxminddb \
@@ -257,7 +257,7 @@ ENV LUA_CPATH="${LUA_MOD}/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib
 # Add custom compiled binaries to the PATH
 ENV PATH=$HOME_DIR/geoip/bin:$HOME_DIR/luajit/bin:$HOME_DIR/openssl33/bin:$HOME_DIR/pcre2/bin:$PATH
 
-# Set the working directory to the FreeNGINX home directory
+# Set the working directory to the NGINX home directory
 WORKDIR ${HOME_DIR}
 
 # Expose Nginx ports

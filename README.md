@@ -1,6 +1,6 @@
-# FreeNGINX Docker Image
+# NGINX Docker Image
 
-Built on **Rocky Linux 9**, this repository provides a custom Docker image for FreeNGINX, designed for high-performance web applications. It supports Lua scripting, PCRE2, and HTTP/3 with QUIC (via OpenSSL). 
+Built on **Rocky Linux 9**, this repository provides a custom Docker image for NGINX, designed for high-performance web applications. It supports Lua scripting, PCRE2, and HTTP/3 with QUIC (via OpenSSL). 
 
 ## Features
 
@@ -11,7 +11,7 @@ Built on **Rocky Linux 9**, this repository provides a custom Docker image for F
 
 ## Components
 
-* **FreeNGINX**: Version `1.27.4`
+* **NGINX**: Version `1.27.3`
 * **zlib**: Version `1.3.1`
 * **PCRE2**: Version `10.44`
 * **OpenSSL**: Version `3.3.2`
@@ -39,12 +39,12 @@ docker build -t nginx:latest .
 
 ### Run the Container
 
-You can run the FreeNGINX container using the following command:
+You can run the NGINX container using the following command:
 ```sh
 docker run -d -p 80:80 -p 443:443 --name nginx nginx:latest
 ```
 
-This will start FreeNGINX with the default configuration.
+This will start NGINX with the default configuration.
 
 ### Custom NGINX Configuration
 
@@ -64,7 +64,7 @@ You can also include custom Lua scripts, or other configuration options as neede
 
 ### HTTP/2, QUIC + HTTP/3 Configuration
 
-To enable HTTP/2, QUIC and HTTP/3 in FreeNGINX, you typically configure your server block as follows:
+To enable HTTP/2, QUIC and HTTP/3 in NGINX, you typically configure your server block as follows:
 ```sh
 server {
     listen 443 ssl reuseport;

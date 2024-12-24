@@ -23,8 +23,7 @@ jobs:
          
     - name: Build and push multi-platform Docker image
       run: |
-        docker buildx build \
-          --platform linux/amd64,linux/arm64,linux/ppc64le,linux/s390x \
-          --push -t sungyism/nginx:latest \
+        docker build --push \
+          -t sungyism/nginx:latest \
           -t sungyism/nginx:${{ vars.NGINX_VERSION }}-rockylinux-9 \
           .

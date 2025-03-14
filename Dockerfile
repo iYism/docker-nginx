@@ -15,10 +15,10 @@ FROM rockylinux:9 AS builder
 LABEL maintainer="iYism <admin@iyism.com>"
 
 # Component versions
-ENV NGINX_VERSION=1.27.3 \
+ENV NGINX_VERSION=1.27.4 \
     ZLIB_VERSION=1.3.1 \
     PCRE2_VERSION=10.44 \
-    OPENSSL_VERSION=3.3.2 \
+    OPENSSL_VERSION=3.3.3 \
     GEOIP_VERSION=1.6.12 \
     BROTLI_VERSION=1.0.9 \
     NGX_BROTLI_VERSION=master \

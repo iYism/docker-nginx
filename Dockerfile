@@ -78,12 +78,12 @@ RUN set -x \
     && curl -LO --output-dir ${BUILD_DIR} https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz \
     && tar zxf openssl-${OPENSSL_VERSION}.tar.gz \
     && cd openssl-${OPENSSL_VERSION} \
-    && ./Configure --prefix=${HOME_DIR}/openssl33 \
+    && ./Configure --prefix=${HOME_DIR}/openssl34 \
         shared zlib \
         --libdir=lib64 \
         -I${HOME_DIR}/zlib/include \
         -L${HOME_DIR}/zlib/lib \
-        -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/openssl33/lib64 \
+        -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/openssl34/lib64 \
     && make -j`nproc` \
     && make install_sw \
     && cd ${BUILD_DIR} \
@@ -185,8 +185,8 @@ RUN set -x \
        --add-module=${BUILD_DIR}/ngx_http_geoip2_module-${NGX_GEOIP2_VERSION} \
        --add-module=${BUILD_DIR}/ngx_brotli-${NGX_BROTLI_VERSION} \
        --add-module=${BUILD_DIR}/lua-nginx-module-${LUA_NGINX_VERSION} \
-       --with-cc-opt="-fPIE -O2 -DNGX_LUA_ABORT_AT_PANIC -I${HOME_DIR}/zlib/include -I${HOME_DIR}/geoip/include -I${HOME_DIR}/pcre2/include -I${HOME_DIR}/openssl33/include" \
-       --with-ld-opt="-pie -Wl,-rpath,${HOME_DIR}/luajit/lib -L${HOME_DIR}/zlib/lib -L${HOME_DIR}/geoip/lib -L${HOME_DIR}/pcre2/lib -L${HOME_DIR}/openssl33/lib64 -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/geoip/lib:${HOME_DIR}/pcre2/lib:${HOME_DIR}/openssl33/lib64" \
+       --with-cc-opt="-fPIE -O2 -DNGX_LUA_ABORT_AT_PANIC -I${HOME_DIR}/zlib/include -I${HOME_DIR}/geoip/include -I${HOME_DIR}/pcre2/include -I${HOME_DIR}/openssl34/include" \
+       --with-ld-opt="-pie -Wl,-rpath,${HOME_DIR}/luajit/lib -L${HOME_DIR}/zlib/lib -L${HOME_DIR}/geoip/lib -L${HOME_DIR}/pcre2/lib -L${HOME_DIR}/openssl34/lib64 -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/geoip/lib:${HOME_DIR}/pcre2/lib:${HOME_DIR}/openssl34/lib64" \
     && make -j`nproc` \
     && make install \
     && cd ${BUILD_DIR} \
@@ -255,7 +255,7 @@ ENV LUA_PATH="${LUA_LIB}/?.lua;${HOME_DIR}/luajit/share/luajit-2.1/?.lua;./?.lua
 ENV LUA_CPATH="${LUA_MOD}/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so"
 
 # Add custom compiled binaries to the PATH
-ENV PATH=$HOME_DIR/geoip/bin:$HOME_DIR/luajit/bin:$HOME_DIR/openssl33/bin:$HOME_DIR/pcre2/bin:$PATH
+ENV PATH=$HOME_DIR/geoip/bin:$HOME_DIR/luajit/bin:$HOME_DIR/openssl34/bin:$HOME_DIR/pcre2/bin:$PATH
 
 # Set the working directory to the NGINX home directory
 WORKDIR ${HOME_DIR}

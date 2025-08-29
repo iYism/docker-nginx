@@ -79,10 +79,10 @@ RUN set -x \
     && cd openssl-${OPENSSL_VERSION} \
     && ./Configure --prefix=${HOME_DIR}/openssl3 \
         shared zlib \
-        --libdir=lib64 \
+        --libdir=lib \
         -I${HOME_DIR}/zlib/include \
         -L${HOME_DIR}/zlib/lib \
-        -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/openssl3/lib64 \
+        -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/openssl3/lib \
     && make -j`nproc` \
     && make install_sw \
     && cd ${BUILD_DIR} \

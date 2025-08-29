@@ -20,7 +20,8 @@ ENV NGINX_VERSION=1.29.1 \
     PCRE2_VERSION=10.46 \
     OPENSSL_VERSION=3.5.2 \
     GEOIP_VERSION=1.6.12 \
-    BROTLI_VERSION=1.0.9 \
+    LIBMAXMINDDB_VERSION=1.12.2 \
+    BROTLI_VERSION=1.1.0 \
     NGX_BROTLI_VERSION=master \
     NGX_GEOIP2_VERSION=3.4 \
     NGX_DEVEL_KIT_VERSION=0.3.3 \
@@ -51,10 +52,8 @@ RUN set -x \
 # Mkdir basedir
     && mkdir -p ${LUA_LIB} ${LUA_MOD} \
 # Install development packages
-    && dnf install -y dnf-plugins-core \
-    && dnf config-manager --enable devel \
-    && dnf install -y make gcc gcc-c++ perl diffutils autoconf automake libtool procps-ng \
-        gd-devel brotli-devel libxslt-devel libxml2-devel libmaxminddb-devel \
+    && dnf install -y make cmake gcc gcc-c++ autoconf automake \
+        perl diffutils libtool procps-ng gd-devel libxslt-devel libxml2-devel \
 # Install zlib
     && curl -LO --output-dir ${BUILD_DIR} https://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz \
     && tar zxf zlib-${ZLIB_VERSION}.tar.gz \
@@ -78,12 +77,12 @@ RUN set -x \
     && curl -LO --output-dir ${BUILD_DIR} https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz \
     && tar zxf openssl-${OPENSSL_VERSION}.tar.gz \
     && cd openssl-${OPENSSL_VERSION} \
-    && ./Configure --prefix=${HOME_DIR}/openssl34 \
+    && ./Configure --prefix=${HOME_DIR}/openssl3 \
         shared zlib \
         --libdir=lib64 \
         -I${HOME_DIR}/zlib/include \
         -L${HOME_DIR}/zlib/lib \
-        -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/openssl34/lib64 \
+        -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/openssl3/lib64 \
     && make -j`nproc` \
     && make install_sw \
     && cd ${BUILD_DIR} \
@@ -119,13 +118,35 @@ RUN set -x \
     && curl -LJO --output-dir ${BUILD_DIR} https://github.com/openresty/lua-nginx-module/archive/refs/tags/v${LUA_NGINX_VERSION}.tar.gz \
     && tar zxf lua-nginx-module-${LUA_NGINX_VERSION}.tar.gz \
     && cd ${BUILD_DIR} \
-# Download ngx_brotli
-    && curl -LJO --output-dir ${BUILD_DIR} https://github.com/google/ngx_brotli/archive/refs/heads/${NGX_BROTLI_VERSION}.tar.gz \
-    && tar zxf ngx_brotli-${NGX_BROTLI_VERSION}.tar.gz \
-    && curl -LJO --output-dir ${BUILD_DIR} https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz \
-    && rm -fr ngx_brotli-${NGX_BROTLI_VERSION}/deps/brotli \
-    && tar zxf brotli-${BROTLI_VERSION}.tar.gz -C ngx_brotli-${NGX_BROTLI_VERSION}/deps \
-    && mv ngx_brotli-${NGX_BROTLI_VERSION}/deps/brotli-${BROTLI_VERSION} ngx_brotli-${NGX_BROTLI_VERSION}/deps/brotli \
+# Install libmaxminddb
+    && curl -Lo libmaxminddb-${LIBMAXMINDDB_VERSION}.tar.gz https://github.com/maxmind/libmaxminddb/releases/download/${LIBMAXMINDDB_VERSION}/libmaxminddb-${LIBMAXMINDDB_VERSION}.tar.gz \
+    && tar -zxf libmaxminddb-${LIBMAXMINDDB_VERSION}.tar.gz \
+    && cd libmaxminddb-${LIBMAXMINDDB_VERSION} \
+    && ./configure --prefix=${HOME_DIR}/libmaxminddb \
+    && make -j`nproc` > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && make install > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && rm -rf ${HOME_DIR}/libmaxminddb/lib/*.la \
+    && rm -rf ${HOME_DIR}/libmaxminddb/share \
+    && cd ${BUILD_DIR} \
+# Install brotli
+    && curl -Lo brotli-${BROTLI_VERSION}.tar.gz https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz \
+    && curl -Lo ngx_brotli-${NGX_BROTLI_VERSION}.tar.gz https://github.com/google/ngx_brotli/archive/refs/heads/${NGX_BROTLI_VERSION}.tar.gz \
+    && tar -zxf brotli-${BROTLI_VERSION}.tar.gz \
+    && cd brotli-${BROTLI_VERSION} \
+    && mkdir out && cd out \
+    && cmake -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=${HOME_DIR}/brotli \
+        -DCMAKE_EXE_LINKER_FLAGS="-Wl,-rpath,${HOME_DIR}/brotli/lib" \
+        -DCMAKE_INSTALL_LIBDIR=lib .. > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && cmake --build . --config Release --target install > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && cd ${BUILD_DIR} \
+# Unpack ngx_brotli, inject specific Brotli source into its deps
+    && tar -zxf ngx_brotli-${NGX_BROTLI_VERSION}.tar.gz \
+    && cd ngx_brotli-${NGX_BROTLI_VERSION} \
+    && mv ../brotli-${BROTLI_VERSION} deps/ \
+    && rm -fr deps/brotli \
+    && mv deps/brotli-${BROTLI_VERSION} deps/brotli \
+    && cd ${BUILD_DIR} \
 # Install nginx
     && curl -LO --output-dir ${BUILD_DIR} https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
     && tar zxf nginx-${NGINX_VERSION}.tar.gz \
@@ -185,8 +206,8 @@ RUN set -x \
        --add-module=${BUILD_DIR}/ngx_http_geoip2_module-${NGX_GEOIP2_VERSION} \
        --add-module=${BUILD_DIR}/ngx_brotli-${NGX_BROTLI_VERSION} \
        --add-module=${BUILD_DIR}/lua-nginx-module-${LUA_NGINX_VERSION} \
-       --with-cc-opt="-fPIE -O2 -DNGX_LUA_ABORT_AT_PANIC -I${HOME_DIR}/zlib/include -I${HOME_DIR}/geoip/include -I${HOME_DIR}/pcre2/include -I${HOME_DIR}/openssl34/include" \
-       --with-ld-opt="-pie -Wl,-rpath,${HOME_DIR}/luajit/lib -L${HOME_DIR}/zlib/lib -L${HOME_DIR}/geoip/lib -L${HOME_DIR}/pcre2/lib -L${HOME_DIR}/openssl34/lib64 -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/geoip/lib:${HOME_DIR}/pcre2/lib:${HOME_DIR}/openssl34/lib64" \
+       --with-cc-opt="-fPIE -O2 -DNGX_LUA_ABORT_AT_PANIC -I${HOME_DIR}/zlib/include -I${HOME_DIR}/geoip/include -I${HOME_DIR}/pcre2/include -I${HOME_DIR}/openssl3/include" \
+       --with-ld-opt="-pie -Wl,-rpath,${HOME_DIR}/luajit/lib -L${HOME_DIR}/zlib/lib -L${HOME_DIR}/geoip/lib -L${HOME_DIR}/pcre2/lib -L${HOME_DIR}/openssl3/lib64 -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/geoip/lib:${HOME_DIR}/pcre2/lib:${HOME_DIR}/openssl3/lib64" \
     && make -j`nproc` \
     && make install \
     && cd ${BUILD_DIR} \
@@ -214,9 +235,6 @@ RUN set -x \
 # Clean tmpdata
     && cd ${HOME_DIR} \
     && rm -fr ${BUILD_DIR} \
-    && dnf config-manager --disable devel \
-    && dnf remove -y make gcc gcc-c++ perl diffutils autoconf automake libtool dnf-plugins-core \
-    && dnf remove -y --noautoremove gd-devel brotli-devel libxslt-devel libxml2-devel libmaxminddb-devel \
     && dnf clean all
 
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -247,7 +265,7 @@ RUN set -x \
 # Create the directories required for NGINX dependencies
     && mkdir -p ${DATA_DIR} ${LOGS_DIR} \
 # Install required packages
-    && microdnf install -y gd brotli libxslt libxml2 libmaxminddb \
+    && microdnf install -y gd libxslt libxml2 \
     && microdnf clean all
 
 # Add Lua paths
@@ -255,7 +273,7 @@ ENV LUA_PATH="${LUA_LIB}/?.lua;${HOME_DIR}/luajit/share/luajit-2.1/?.lua;./?.lua
 ENV LUA_CPATH="${LUA_MOD}/?.so;./?.so;/usr/local/lib/lua/5.1/?.so;/usr/local/lib/lua/5.1/loadall.so"
 
 # Add custom compiled binaries to the PATH
-ENV PATH=$HOME_DIR/geoip/bin:$HOME_DIR/luajit/bin:$HOME_DIR/openssl34/bin:$HOME_DIR/pcre2/bin:$PATH
+ENV PATH=$HOME_DIR/geoip/bin:$HOME_DIR/luajit/bin:$HOME_DIR/openssl3/bin:$HOME_DIR/pcre2/bin:$HOME_DIR/libmaxminddb/bin:$HOME_DIR/brotli/bin:$PATH
 
 # Set the working directory to the NGINX home directory
 WORKDIR ${HOME_DIR}

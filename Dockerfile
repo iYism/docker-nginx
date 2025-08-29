@@ -52,15 +52,15 @@ RUN set -x \
 # Mkdir basedir
     && mkdir -p ${LUA_LIB} ${LUA_MOD} \
 # Install development packages
-    && dnf install -y make cmake gcc gcc-c++ autoconf automake \
+    && dnf -q -d 0 install -y make cmake gcc gcc-c++ autoconf automake \
         perl diffutils libtool procps-ng gd-devel libxslt-devel libxml2-devel \
 # Install zlib
     && curl -LO --output-dir ${BUILD_DIR} https://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz \
     && tar zxf zlib-${ZLIB_VERSION}.tar.gz \
     && cd zlib-${ZLIB_VERSION} \
     && ./configure --prefix=${HOME_DIR}/zlib \
-    && make -j`nproc` \
-    && make install \
+    && make -j`nproc` > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && make install > build.log 2>&1 || { cat build.log ; exit 1; } \
     && cd ${BUILD_DIR} \
 # Install pcre2
     && curl -LO --output-dir ${BUILD_DIR} https://github.com/PCRE2Project/pcre2/releases/download/pcre2-${PCRE2_VERSION}/pcre2-${PCRE2_VERSION}.tar.gz \
@@ -70,8 +70,8 @@ RUN set -x \
         --enable-jit \
         --enable-pcre2-16 \
         --enable-pcre2-32 \
-    && make -j`nproc` \
-    && make install \
+    && make -j`nproc` > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && make install > build.log 2>&1 || { cat build.log ; exit 1; } \
     && cd ${BUILD_DIR} \
 # Install openssl
     && curl -LO --output-dir ${BUILD_DIR} https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz \
@@ -83,8 +83,8 @@ RUN set -x \
         -I${HOME_DIR}/zlib/include \
         -L${HOME_DIR}/zlib/lib \
         -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/openssl3/lib \
-    && make -j`nproc` \
-    && make install_sw \
+    && make -j`nproc` > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && make install_sw > build.log 2>&1 || { cat build.log ; exit 1; } \
     && cd ${BUILD_DIR} \
 # Install geoip-api-c
     && curl -LJO --output-dir ${BUILD_DIR} https://github.com/maxmind/geoip-api-c/archive/refs/tags/v${GEOIP_VERSION}.tar.gz \
@@ -92,8 +92,8 @@ RUN set -x \
     && cd geoip-api-c-${GEOIP_VERSION} \
     && ./bootstrap \
     && ./configure --prefix=${HOME_DIR}/geoip \
-    && make \
-    && make install \
+    && make > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && make install > build.log 2>&1 || { cat build.log ; exit 1; } \
     && cd ${BUILD_DIR} \
 # Download ngx_http_geoip2_module
     && curl -LJO --output-dir ${BUILD_DIR} https://github.com/leev/ngx_http_geoip2_module/archive/refs/tags/${NGX_GEOIP2_VERSION}.tar.gz \
@@ -111,8 +111,8 @@ RUN set -x \
     && curl -LJO --output-dir ${BUILD_DIR} https://github.com/openresty/luajit2/archive/refs/tags/v${LUAJIT_VERSION}.tar.gz \
     && tar zxf luajit2-${LUAJIT_VERSION}.tar.gz \
     && cd luajit2-${LUAJIT_VERSION} \
-    && make -j`nproc` XCFLAGS='-DLUAJIT_ENABLE_GC64' \
-    && make install PREFIX=${HOME_DIR}/luajit \
+    && make -j`nproc` XCFLAGS='-DLUAJIT_ENABLE_GC64' > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && make install PREFIX=${HOME_DIR}/luajit > build.log 2>&1 || { cat build.log ; exit 1; } \
     && cd ${BUILD_DIR} \
 # Download lua-nginx-module
     && curl -LJO --output-dir ${BUILD_DIR} https://github.com/openresty/lua-nginx-module/archive/refs/tags/v${LUA_NGINX_VERSION}.tar.gz \
@@ -221,9 +221,9 @@ RUN set -x \
          -L${HOME_DIR}/geoip/lib \
          -L${HOME_DIR}/libmaxminddb/lib \
          -L${HOME_DIR}/brotli/lib \
-         -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/pcre2/lib:${HOME_DIR}/openssl3/lib:${HOME_DIR}/geoip/lib:${HOME_DIR}/libmaxminddb/lib:${HOME_DIR}/brotli/lib" \
-    && make -j`nproc` \
-    && make install \
+         -Wl,-rpath,${HOME_DIR}/luajit/lib:${HOME_DIR}/zlib/lib:${HOME_DIR}/pcre2/lib:${HOME_DIR}/openssl3/lib:${HOME_DIR}/geoip/lib:${HOME_DIR}/libmaxminddb/lib:${HOME_DIR}/brotli/lib" \
+    && make -j`nproc` > build.log 2>&1 || { cat build.log ; exit 1; } \
+    && make install > build.log 2>&1 || { cat build.log ; exit 1; } \
     && cd ${BUILD_DIR} \
 # Install lua-resty-core
     && curl -LJO --output-dir ${BUILD_DIR} https://github.com/openresty/lua-resty-core/archive/refs/tags/v${RESTY_CORE_VERSION}.tar.gz \

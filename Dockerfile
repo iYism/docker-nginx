@@ -206,8 +206,22 @@ RUN set -x \
        --add-module=${BUILD_DIR}/ngx_http_geoip2_module-${NGX_GEOIP2_VERSION} \
        --add-module=${BUILD_DIR}/ngx_brotli-${NGX_BROTLI_VERSION} \
        --add-module=${BUILD_DIR}/lua-nginx-module-${LUA_NGINX_VERSION} \
-       --with-cc-opt="-fPIE -O2 -DNGX_LUA_ABORT_AT_PANIC -I${HOME_DIR}/zlib/include -I${HOME_DIR}/geoip/include -I${HOME_DIR}/pcre2/include -I${HOME_DIR}/openssl3/include" \
-       --with-ld-opt="-pie -Wl,-rpath,${HOME_DIR}/luajit/lib -L${HOME_DIR}/zlib/lib -L${HOME_DIR}/geoip/lib -L${HOME_DIR}/pcre2/lib -L${HOME_DIR}/openssl3/lib64 -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/geoip/lib:${HOME_DIR}/pcre2/lib:${HOME_DIR}/openssl3/lib64" \
+       --with-cc-opt=" \
+         -DNGX_LUA_ABORT_AT_PANIC \
+         -I${HOME_DIR}/zlib/include \
+         -I${HOME_DIR}/pcre2/include \
+         -I${HOME_DIR}/openssl3/include \
+         -I${HOME_DIR}/geoip/include \
+         -I${HOME_DIR}/libmaxminddb/include \
+         -I${HOME_DIR}/brotli/include" \
+       --with-ld-opt=" \
+         -L${HOME_DIR}/zlib/lib \
+         -L${HOME_DIR}/pcre2/lib \
+         -L${HOME_DIR}/openssl3/lib \
+         -L${HOME_DIR}/geoip/lib \
+         -L${HOME_DIR}/libmaxminddb/lib \
+         -L${HOME_DIR}/brotli/lib \
+         -Wl,-rpath,${HOME_DIR}/zlib/lib:${HOME_DIR}/pcre2/lib:${HOME_DIR}/openssl3/lib:${HOME_DIR}/geoip/lib:${HOME_DIR}/libmaxminddb/lib:${HOME_DIR}/brotli/lib" \
     && make -j`nproc` \
     && make install \
     && cd ${BUILD_DIR} \

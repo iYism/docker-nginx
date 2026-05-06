@@ -11,7 +11,7 @@ Built on **Rocky Linux 9**, this repository provides a custom Docker image for N
 
 ## Components
 
-* **NGINX**: Version `1.27.3`
+* **NGINX**: Version `1.30.0`
 * **zlib**: Version `1.3.1`
 * **PCRE2**: Version `10.44`
 * **OpenSSL**: Version `3.3.2`

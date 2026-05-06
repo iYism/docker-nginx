@@ -15,7 +15,7 @@ FROM rockylinux:9 AS builder
 LABEL maintainer="iYism <admin@iyism.com>"
 
 # Component versions
-ENV NGINX_VERSION=1.29.7 \
+ENV NGINX_VERSION=1.30.0 \
     ZLIB_VERSION=1.3.2 \
     PCRE2_VERSION=10.47 \
     OPENSSL_VERSION=3.5.5 \

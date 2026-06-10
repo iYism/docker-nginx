@@ -29,12 +29,33 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-         
+
+      - name: Resolve NGINX version
+        id: nginx
+        env:
+          REPO_VER: ${{ vars.NGINX_VERSION }}
+        run: |
+          # Read NGINX_VERSION straight from the Dockerfile.
+          FILE_VER=$(grep -oP 'NGINX_VERSION=\K[0-9]+\.[0-9]+\.[0-9]+' Dockerfile | head -1)
+          if [ -z "$FILE_VER" ]; then
+            echo "::error::Could not parse NGINX_VERSION from Dockerfile"; exit 1
+          fi
+          # Pick the higher of the Dockerfile version and the repo variable;
+          # the Dockerfile wins on a tie, so bumping it alone is enough.
+          HIGHER=$(printf '%s\n%s\n' "$REPO_VER" "$FILE_VER" | sort -V | tail -1)
+          if [ -z "$REPO_VER" ] || [ "$HIGHER" = "$FILE_VER" ]; then
+            VER="$FILE_VER"
+          else
+            VER="$REPO_VER"
+          fi
+          echo "Resolved NGINX version: $VER (Dockerfile=$FILE_VER, repo var=${REPO_VER:-<unset>})"
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+
       - name: Build and push multi-platform Docker image
         run: |
           docker buildx build \
             --platform linux/amd64,linux/arm64,linux/ppc64le,linux/s390x \
             --push \
             -t sungyism/nginx:latest \
-            -t sungyism/nginx:${{ vars.NGINX_VERSION }}-rockylinux-9 \
+            -t sungyism/nginx:${{ steps.nginx.outputs.version }}-rockylinux-9 \
             .

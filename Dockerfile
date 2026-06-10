@@ -15,21 +15,23 @@ FROM rockylinux:9 AS builder
 LABEL maintainer="iYism <admin@iyism.com>"
 
 # Component versions
-ENV NGINX_VERSION=1.30.0 \
+ENV NGINX_VERSION=1.31.1 \
     ZLIB_VERSION=1.3.2 \
     PCRE2_VERSION=10.47 \
-    OPENSSL_VERSION=3.5.5 \
+    OPENSSL_VERSION=3.5.7 \
+    OPENSSL_PATCH_VERSION=3.5.5 \
+    OPENSSL_PATCH_URL= \
     GEOIP_VERSION=1.6.12 \
     LIBMAXMINDDB_VERSION=1.13.3 \
     BROTLI_VERSION=1.2.0 \
     NGX_BROTLI_VERSION=master \
     NGX_GEOIP2_VERSION=3.4 \
-    NGX_DEVEL_KIT_VERSION=0.3.3 \
-    LUAJIT_VERSION=2.1-20260311 \
+    NGX_DEVEL_KIT_VERSION=0.3.4 \
+    LUAJIT_VERSION=2.1-20260606 \
     ECHO_NGINX_VERSION=0.64 \
-    LUA_NGINX_VERSION=0.10.29 \
-    LUA_CJSON_VERSION=2.1.0.16 \
-    RESTY_CORE_VERSION=0.1.32 \
+    LUA_NGINX_VERSION=0.10.31 \
+    LUA_CJSON_VERSION=2.1.0.17 \
+    RESTY_CORE_VERSION=0.1.34rc3 \
     RESTY_LOCK_VERSION=0.09 \
     RESTY_LRUCACHE_VERSION=0.15
 
@@ -53,7 +55,7 @@ RUN set -x \
     && mkdir -p ${LUA_LIB} ${LUA_MOD} \
 # Install development packages
     && dnf -q -d 0 install -y make cmake gcc gcc-c++ autoconf automake \
-        perl diffutils libtool procps-ng gd-devel libxslt-devel libxml2-devel \
+        perl diffutils patch libtool procps-ng gd-devel libxslt-devel libxml2-devel \
 # Install zlib
     && curl -LO --output-dir ${BUILD_DIR} https://www.zlib.net/zlib-${ZLIB_VERSION}.tar.gz \
     && tar zxf zlib-${ZLIB_VERSION}.tar.gz \
@@ -77,6 +79,16 @@ RUN set -x \
     && curl -LO --output-dir ${BUILD_DIR} https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz \
     && tar zxf openssl-${OPENSSL_VERSION}.tar.gz \
     && cd openssl-${OPENSSL_VERSION} \
+# Apply a custom OpenSSL patch (optional). Skipped when OPENSSL_PATCH_VERSION is empty.
+# OPENSSL_PATCH_URL overrides the source; otherwise the OpenResty sess_set_get_cb_yield
+# patch matching OPENSSL_PATCH_VERSION is used (the patch label may trail OPENSSL_VERSION
+# when a newer patch is not published yet, e.g. build 3.5.7 + patch 3.5.5).
+    && if [ -n "${OPENSSL_PATCH_VERSION}" ]; then \
+         patch_url="${OPENSSL_PATCH_URL:-https://raw.githubusercontent.com/openresty/openresty/master/patches/openssl-${OPENSSL_PATCH_VERSION}-sess_set_get_cb_yield.patch}" \
+         && echo "Applying OpenSSL patch: ${patch_url}" \
+         && curl -fL -o /tmp/openssl-custom.patch "${patch_url}" \
+         && patch -p1 < /tmp/openssl-custom.patch ; \
+       fi \
     && ./Configure --prefix=${HOME_DIR}/openssl3 \
         shared zlib \
         --libdir=lib \

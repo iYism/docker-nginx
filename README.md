@@ -11,22 +11,22 @@ Built on **Rocky Linux 9**, this repository provides a custom Docker image for N
 
 ## Components
 
-* **NGINX**: Version `1.30.0`
-* **zlib**: Version `1.3.1`
-* **PCRE2**: Version `10.44`
-* **OpenSSL**: Version `3.3.2`
+* **NGINX**: Version `1.31.1`
+* **zlib**: Version `1.3.2`
+* **PCRE2**: Version `10.47`
+* **OpenSSL**: Version `3.5.7`
 * **geoip-api-c**: Version `1.6.12`
-* **brotli**: Version `1.0.9`
+* **brotli**: Version `1.2.0`
 * **ngx_brotli**: Version `master`
 * **ngx_http_geoip2_module**: Version `3.4`
-* **ngx_devel_kit**: Version `0.3.3`
-* **LuaJIT**: Version `2.1-20240815`
-* **echo-nginx-module**: Version `0.63`
-* **lua-nginx-module**: Version `0.10.27`
-* **lua-cjson**: Version `2.1.0.14`
-* **lua-resty-core**: Version `0.1.29`
+* **ngx_devel_kit**: Version `0.3.4`
+* **LuaJIT**: Version `2.1-20260606`
+* **echo-nginx-module**: Version `0.64`
+* **lua-nginx-module**: Version `0.10.31`
+* **lua-cjson**: Version `2.1.0.17`
+* **lua-resty-core**: Version `0.1.34rc3`
 * **lua-resty-lock**: Version `0.09`
-* **lua-resty-lrucache**: Version `0.14`
+* **lua-resty-lrucache**: Version `0.15`
 
 ## Quick Start
 
